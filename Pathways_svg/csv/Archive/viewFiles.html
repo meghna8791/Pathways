@@ -1,0 +1,128 @@
+<html xmlns:xlink="http://www.w3.org/1999/xlink">
+<head> 
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+	<script src="./csvJSON.js"></script>
+</head>
+<body>
+	<form>
+			<table>
+				
+				<tr><td>UserName</td><td><input type="text" name="usrname" id="usname"></input> </td></tr>
+
+				<tr><td>Project</td><td><input type="text" name="project" id="project">  </input></td></tr>
+				<tr><td><input type="button" value="submit" id="submit">Submit </button></td></tr>
+			</table>
+	</form>
+	<p id="cont">Hello</p>
+	<svg width="700" height="700"> </svg>
+	
+	<script>
+
+
+			var buffer = 5;
+			var svg = d3.select("svg");
+										
+			
+
+
+			function drawCircle(fileName,theta,R){
+				var path = d3.select(".path").node();
+				
+				var  point = path.getPointAtLength(theta*(R));
+				
+				var circle = d3.select("g")
+								.append("a")
+							 .attr("xlink:href", function(d){
+									return "./visualizeFile.php?usrname=Megh&project=Photosynthesis&fileName="+fileName;	
+								})
+								.append("circle")
+								.attr("cx",point.x)
+								.attr("cy",point.y)
+								.attr("r",r)
+								.attr("class","file");
+			  
+				d3.select("g").append("text")
+						.attr("x",point.x-r/2)
+						.attr("y", point.y+r/4)
+						.text(fileName.toUpperCase())
+						.attr("class","text");
+				return point;
+			}
+
+		function drawFiles(files,center){
+			var num=files.length;
+			var RCal = (2*num-1)*40/Math.PI;
+			var Rmin = 150;
+			var R = (RCal>Rmin)?RCal:Rmin;
+			var r = 40;
+			var arc = d3.svg.arc()
+						.innerRadius(R)
+						.outerRadius(R)
+						.startAngle(-Math.PI/2)
+						.endAngle(Math.PI/2);
+
+			var g = svg.append("g")
+						.attr("transform","translate("+center.x+","+center.y+")");
+						
+			var path = g.append("path")
+						.attr("d", arc)
+						.style("stroke","none")
+						.attr("class","path");
+			var count=0;
+
+			var phi = Math.PI/num;
+
+			for(var i=0;i<files.length;i++){
+				console.log(files[i]);
+				var theta=count*phi;
+				
+				var  point = path.node().getPointAtLength(theta*(R));
+				
+				var circle = d3.select("g")
+								.append("a")
+							    .attr("xlink:href", function(d){
+									return "./visualizeFile.php?usrname=Megh&project=Photosynthesis&fileName="+files[i];	
+								})
+								.append("circle")
+								.attr("cx",point.x)
+								.attr("cy",point.y)
+								.attr("r",r)
+								.attr("class","file");
+			  
+				d3.select("g").append("text")
+						.attr("x",point.x-r/2)
+						.attr("y", point.y+r/4)
+						.text(files[i].toUpperCase())
+						.attr("class","text");
+				count++;  //index of the file
+			}
+		}
+
+		 function loadXMLDoc()
+		{ 
+			var xmlhttp;
+			if (window.XMLHttpRequest)
+			  {// code for IE7+, Firefox, Chrome, Opera, Safari
+			  xmlhttp=new XMLHttpRequest();
+			  }
+			
+			  xmlhttp.onreadystatechange=function()
+			  {
+			  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+			    {	
+			    	drawFiles(JSON.parse(xmlhttp.responseText),{x:200,y:200});
+			   		document.getElementById("cont").innerHTML=xmlhttp.responseText;
+			    }
+			  }
+			xmlhttp.open("GET","getFiles.php?usrname=Megh&project=Photosynthesis",true);
+			xmlhttp.send();
+		}
+
+		$("#submit").on("click",function(){
+			loadXMLDoc();
+		});
+
+
+		</script>
+</body>

@@ -1,0 +1,52 @@
+svg{
+	background: black;
+	color:white;
+}
+
+.cubePointerGroup circle{
+	fill:red;
+}
+
+.molecule circle{
+	fill:#40E0D0;
+	stroke:none;
+}
+
+.enzyme circle{
+	fill:#FFFF00;
+	stroke:none;
+
+}
+
+.selected circle,.selected .path{
+	fill:orange;
+}
+
+.reaction .path{
+	stroke-width:4;
+	stroke:white;
+	fill:none;
+
+}
+
+.selected .path{
+	stroke:orange;
+}
+
+.tPath{
+	fill:none;
+	stroke-width:0;
+
+}
+
+.moleName {
+	fill:white;
+	font-size:1.2em;
+	font-family:"Trebuchet MS", Helvetica, sans-serif;
+}
+
+.moleConc,.rateText{
+	fill:white;
+	font-size:0.8em;
+	font-family:"Trebuchet MS", Helvetica, sans-serif;
+}

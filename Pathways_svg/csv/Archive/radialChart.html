@@ -1,0 +1,176 @@
+<html>
+<head>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<style>
+		
+		body{
+			background:black;
+		}
+		.lineAxes line{
+			shape-rendering:crisp-edges;
+			fill:none;
+			stroke:white;
+			stroke-width:1;
+		}
+
+		.circularTicks circle{
+			fill:none;
+			stroke:white;
+			stroke-width:1;
+		}
+
+
+		.rms{
+			stroke:#FF9E1F;
+			stroke-width:4;
+			fill:none;
+
+		}
+
+		text{
+			fill:white;
+		}
+	</style>
+</head>
+<body>
+
+	<script>
+		var margin = {top:20, bottom:20, right:20,left:20},
+		width=500-margin.left-margin.right,
+		height=500-margin.top-margin.bottom;
+
+		var count=0, ticks=[];
+
+		//var lineData = [[{"r":100,"a":Math.PI/3}],[{"r":200,"a":2*Math.PI/3}]];
+		var lineData=[{"Mole":"A","RMS":0.1},{"Mole":"B", "RMS":0.3},{"Mole":"C", "RMS":0.5},{"Mole":"D", "RMS":0.7}];
+		//var lineData = [{"x":200, "y":100},{"x":250, "y":100},{"x":300, "y":100},{"x":200, "y":50}];
+		var svg = d3.select("body")
+					.append("svg")
+					.attr("height",height+margin.top+margin.bottom)
+					.attr("width",width+margin.left+margin.right);
+		
+		
+		var circleConstraint = d3.min([width,height]);
+		console.log(circleConstraint/2);
+		var radius = d3.scale.linear()
+						.range([0,(circleConstraint/2)]);
+		var centerX = width/2+margin.left,
+			centerY	=height/2+margin.top;
+
+		var chart = svg.append("g")
+						.attr("class","radialChart")
+						.attr("transform","translate("+centerX+","+centerY+")");
+
+
+		
+		var topValue = 1;
+
+		radius.domain([0,topValue]);
+
+		ticks=[0,0.5,topValue];
+		
+		/*for(var i=0;i<6;i++){
+			ticks[i] = i*topValue/5;
+		}*/
+		//draw the axes for each molecule
+		var count = lineData.length;
+
+		var stencil = chart.append("g")
+						.attr("class","stencil")
+						
+						stencil.append("path")
+						.data([[topValue,topValue,topValue,topValue,topValue]])
+						.attr("d",d3.svg.line.radial()
+								.radius(function(d){return radius(d)})
+								.angle(function(d,i){ 
+									if (i == count) {
+             							console.log("yay");i=0;
+         							 } //close the line
+         							 return i*2*Math.PI/count;})
+							)
+						.style("stroke","white");
+
+		var circularAxes = chart.selectAll(".circularTicks")
+								.data(ticks)
+								.enter()
+								.append("g")
+								.attr("class","circularTicks");
+								
+
+		var circleTicks= circularAxes.append("circle")
+								.attr("r", function(d){return radius(d);});
+						
+
+
+		var text = circularAxes.append("text")
+								.text(function(d){return d;})
+								.attr("text-anchor","end")
+								.attr("x",function(d){return radius(d);});
+
+
+		
+
+		var lineAxes = chart.selectAll(".lineAxes")
+						.data(lineData)
+						.enter()
+						.append("g")
+						.attr("class","lineAxes")
+						
+		
+		var lines = lineAxes.append("line")
+					.attr("x2",function(d){return radius(topValue)})
+					.attr("transform",function(d,i){return "rotate("+((i*360/count-90))+")";});
+
+		var lineText =  lineAxes.append("text")
+						.text(function(d){return d.Mole;})
+						.attr("text-anchor","start")
+						.attr("dx",2)
+						.attr("transform",function(d,i){return "rotate("+((i*360/count-90))+")translate("+radius(topValue)+")";});
+		var series = [[0.1,0.2,0.3,0.4,0.1]];	
+		var paths = [0.1,0.2,0.3,0.4,0.1];  //of the format ["value"]		
+		var values = chart.selectAll(".values")
+						.data(paths)
+						.enter()
+						.append("g")
+						.attr("class","values");
+
+		/*var circles = values.append("circle")
+						.attr("cx",function(d){return radius(d);})
+						.attr("r",10)
+						.attr("stroke","black")
+						.attr("fill","none")
+						.attr("transform",function(d,i){return "rotate("+(i*360/count-90)+")";});*/
+
+		var color =d3.scale.category20();
+
+
+		
+		var drawValues = chart.append("g")
+							.attr("class","lines");
+
+		var lines = drawValues.append("path")
+					.data(series)
+					.attr("class","rms")
+					.attr("d",d3.svg.line.radial()
+								.radius(function(d){return radius(d)})
+								.angle(function(d,i){ 
+									if (i == count) {
+             							console.log("yay");i=0;
+         							 } //close the line
+         							 return i*2*Math.PI/count;})
+							)
+					.style("fill","rgba(255,0,0,0.5)");
+
+
+		
+		
+
+
+
+		
+	
+		
+	</script>
+</body>
+</html>

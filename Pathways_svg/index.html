@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Tuio.js</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="css/pathways.css" type="text/css" ></style>
+    <link rel="stylesheet" href="css/radialGraph.css" type="text/css" ></style>
+    <link rel="stylesheet" href="css/scatterPlot.css" type="text/css" ></style>
+     <link rel="stylesheet" href="css/csv.css" type="text/css" ></style>
+</head>
+<body>
+
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script> 
+    <script>
+	   window.io2 = window.io;
+	   window.io = undefined;
+    </script>
+    <script src="../../libs/lodash.js"></script>
+    <script src="../../dist/Tuio.min.js"></script>
+    <script src="../../libs/socket.io.js"></script> 
+    <script src="lib/requestanimationframe.js"></script>
+    <script src="lib/numeric.js"></script>
+    
+    <script src="shapes/scatterPlot.js"></script>
+    <script src="shapes/radialGraph.js"></script>
+
+    <script src="managers/stateManager.js"> </script>
+    <script src="managers/moleManager.js"> </script>
+    <script src="managers/reactionManager.js"> </script>
+    <script src="managers/bindingManager.js"> </script>
+    <script src="managers/scatterPlotManager.js"> </script>
+    <script src="managers/radialGraphManager.js"> </script>
+    <script src="managers/TuioManager.js"> </script>
+    <script src="managers/csvManager.js"> </script>
+    <script src="managers/ODEManager.js"> </script>
+    
+    <script src="startPathwaysScene.js"> </script>
+
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+    <script>
+    	var numCubes=3,
+            socket, //socket.io for sifteo
+            TC, //for TuioClient
+            cubeFiducial = [4,5,3], //for bindings between the cubes and symbol ID 
+            count=0, prevTime ,prevCube,//for deleting molecules
+            tiltValue = [1,1,1], // for the tilt value
+            simulating=false; //whether simulation is running
+        
+        var screenW = $(window).innerWidth();
+            screenH = $(window).innerHeight();
+
+        //all managers
+        var stateManager,
+            moleculeManager,
+            enzymeManager,
+            reactionManager,
+            bindingManager,
+            ODEManager,
+            radialGraphManager,
+            scatterPlotManager;
+		
+        //all groups
+        var svg,network,
+        moleculeGroup,
+        enzymeGroup,
+        reactionsGroup,
+        scatterPlotGroup,
+        radialGraphGroup,
+        csvGroup,
+        cubePointerGroup;
+
+        //for reaction markers
+        var defs,arrow,markerPath;
+
+        //set the states
+        startPathwaysScene();
+        
+        var count=0;
+
+        $(function() {
+         
+        /*Testing csv*/
+            /*csvManager.drawCSV({x:600,y:300});
+            setTimeout(function(){
+                csvManager.nextCSV(3.14/2);
+                },200);
+            setTimeout(function(){
+                csvManager.setCurrCSV();
+            },500);*/
+            
+        /*End of test*/
+
+        /*testing simulate */
+       /* temp={"A":[{"time":0,"conc":"0.1"},{"time":1,"conc":"0.2"},{"time":2,"conc":"0.3"},{"time":3,"conc":"0.4"},
+        {"time":4,"conc":"0.4"},{"time":5,"conc":"0.4"},{"time":6,"conc":"0.4"},{"time":7,"conc":"0.4"},{"time":8,"conc":"0.4"},{"time":9,"conc":"0.4"},{"time":10,"conc":"0.4"}
+
+        ],"B":[{"time":0,"conc":"0.1"},{"time":1,"conc":"0.2"},{"time":2,"conc":"0.3"},{"time":3,"conc":"0.4"},
+        {"time":4,"conc":"0.4"},{"time":5,"conc":"0.4"},{"time":6,"conc":"0.4"},{"time":7,"conc":"0.4"},{"time":8,"conc":"0.4"},{"time":9,"conc":"0.4"},{"time":10,"conc":"0.4"},{"time":11,"conc":"0.4"},
+        {"time":12,"conc":"0.4"},{"time":13,"conc":"0.4"},{"time":14,"conc":"0.4"},{"time":15,"conc":"0.4"},
+        {"time":16,"conc":"0.4"},{"time":17,"conc":"0.4"},{"time":18,"conc":"0.4"},{"time":19,"conc":"0.4"}
+
+        ]};*/
+         /* var cmpId1=moleculeManager.addMole({x:100,y:200},0.0);
+           ODEManager.appendSimData("GLC");
+           var cmpId2=moleculeManager.addMole({x:300,y:200},0.2);
+           ODEManager.appendSimData("G6P");
+           var cmpId3=enzymeManager.addMole({x:300,y:100},0.4);
+           var rctId1=reactionManager.addReaction(cmpId2,cmpId1,0.3);
+           var rctId2=reactionManager.addReaction(cmpId3,rctId1);
+           console.log(csvManager.getExpData());
+           console.log(ODEManager.getSimData());
+           var sc1=scatterPlotManager.createScatterPlot(csvManager.getExpData(), ODEManager.getSimData() , {x:200,y:300},"GLC");
+           setTimeout(function(){
+            simulating=true;
+            ODEManager.simulate();
+           },1000);
+          /* setTimeout(function(){
+               scatterPlotManager.updateManager("SC_GLC")
+                                    .move({x:200, y:100});
+
+           },1000);*/
+
+          /* setTimeout(function(){
+            scatterPlotManager.findClosestScatterPlot({x:200,y:100});
+           },2000);*/
+        /*end of test*/
+
+        /*experimental*/
+         /*var cmpId1=moleculeManager.addMole({x:50,y:100},50.0);
+          var cmpId2=moleculeManager.addMole({x:100,y:200},0.83);
+           var cmpId3=moleculeManager.addMole({x:200,y:200},0.14);
+            var cmpId4=moleculeManager.addMole({x:100,y:300},0.35);
+             var cmpId5=moleculeManager.addMole({x:200,y:300},1.0);
+              var cmpId6=moleculeManager.addMole({x:100,y:400},0.20);
+               var cmpId7=moleculeManager.addMole({x:200,y:400},0.21);
+                var cmpId8=moleculeManager.addMole({x:100,y:500},1.0);
+                 var cmpId9=moleculeManager.addMole({x:200,y:500},0.3);
+                  var cmpId10=moleculeManager.addMole({x:100,y:600},0.23);
+                   var cmpId11=moleculeManager.addMole({x:200,y:600},0.51);
+
+        var rctId1=reactionManager.addReaction(cmpId1,cmpId2,1);
+        var rctId2=reactionManager.addReaction(cmpId2,cmpId3,0.5);
+        var rctId3=reactionManager.addReaction(cmpId3,cmpId4,1);
+        var rctId4=reactionManager.addReaction(cmpId4,cmpId5,0.5);
+        var rctId5=reactionManager.addReaction(cmpId4,cmpId6,1);
+        var rctId6=reactionManager.addReaction(cmpId6,cmpId7,1);
+        var rctId7=reactionManager.addReaction(cmpId7,cmpId8,0.1);
+        var rctId8=reactionManager.addReaction(cmpId8,cmpId9,0.1);
+        var rctId9=reactionManager.addReaction(cmpId9,cmpId10,0.1);
+        var rctId10=reactionManager.addReaction(cmpId10,cmpId11,0.5);
+        var rctId11=reactionManager.addReaction(cmpId5,cmpId6,0.1);
+
+        var sc1=scatterPlotManager.createScatterPlot(csvManager.getExpData(), ODEManager.getSimData() , {x:300,y:50},"GLC");
+         var sc1=scatterPlotManager.createScatterPlot(csvManager.getExpData(), ODEManager.getSimData() , {x:600,y:50},"G6P");
+          var sc1=scatterPlotManager.createScatterPlot(csvManager.getExpData(), ODEManager.getSimData() , {x:300,y:200},"F6P");
+           var sc1=scatterPlotManager.createScatterPlot(csvManager.getExpData(), ODEManager.getSimData() , {x:600,y:200},"FBP");
+            var sc1=scatterPlotManager.createScatterPlot(csvManager.getExpData(), ODEManager.getSimData() , {x:300,y:400},"DHAP");
+             var sc1=scatterPlotManager.createScatterPlot(csvManager.getExpData(), ODEManager.getSimData() , {x:600,y:400},"GLAP");
+              var sc1=scatterPlotManager.createScatterPlot(csvManager.getExpData(), ODEManager.getSimData() , {x:300,y:600},"BPG");
+               var sc1=scatterPlotManager.createScatterPlot(csvManager.getExpData(), ODEManager.getSimData() , {x:600,y:600},"2PG");
+                var sc1=scatterPlotManager.createScatterPlot(csvManager.getExpData(), ODEManager.getSimData() , {x:300,y:800},"3PG");
+                 var sc1=scatterPlotManager.createScatterPlot(csvManager.getExpData(), ODEManager.getSimData() , {x:600,y:800},"PEP");
+        setTimeout(function(){
+            simulating=true;
+            ODEManager.simulate();
+           },1000);*/
+        /*end of experimental*/
+        socket.on('EVENT',function(data){
+        console.log("event"+data.type);
+
+            //remove the bindings on shake
+            if(data.type=="sifteo_shake"){
+                var isBound = 999;
+                //delete the entry for that cube from the bindings array - search by CubeId 
+                //if the cube is bound then unselect it and remove the binding with that molecule
+                stateManager.onShake(data.cubeId);
+
+            }
+
+            /*if bound double tap within 1 sec then delete the associated molecule
+             else add an element 
+             
+            */
+            if(data.type=="sifteo_touch"){
+
+                //check if the sifteo cube is bound 
+                
+                if(bindingManager.isBoundCube(data.cubeId)&&stateManager.getState(data.cubeId).name.indexOf("Overview")!=-1){
+                    //if bound then wait for a second tap within 2 secs then delete the molecule 
+                    //if not a double tap within 2 secs then check if there is an element below it
+                    //if there is then bind to it otherwise do nothing
+                    
+                    if(data.diff==0){
+                        stateManager.onDoubleTouch(data.cubeId);
+                        //remove all reactions connected to it
+                    }
+
+                }else{
+                        if(data.value){
+                            stateManager.onTouch(data.cubeId);
+                        }
+
+                }
+
+            }
+
+            //if cubes are touched to each other create a reaction between them
+            if(data.type == 'cubes_touched'){
+                //make a reaction
+                //if both the cubes are bound only then make a reaction between the corresponding molecules
+                var cube1 = data.cubeId1,
+                    cube2 = data.cubeId2,
+                    side1=data.cubeSide1,
+                    side2=data.cubeSide2;
+                stateManager.onCubesTouch(cube1,cube2,side1,side2);
+            }
+
+            //if cube is tilted
+            if(data.type =='cube_tilted'){
+                tiltValue[data.cubeId] = data.tiltValue;
+                stateManager.onTilt(data.cubeId,data.tiltValue);
+
+            }
+            
+        });
+	});
+       
+
+       
+    function findSymbolId(cubeId){
+           
+        return  cubeFiducial[cubeId];
+    }
+         
+    function getTuioObject(sid){
+        var list = TuioManager.getObjects(),
+                   found = false,
+                   temp;
+        for(var i in list){
+            temp = list[i];
+            if(list[i].symbolId == sid) {
+                found= true;
+            }
+        }
+
+        if(found){return list[i];}
+        else {return null;}
+    }
+
+       
+
+       
+    </script>
+   
+</body>
+</html>

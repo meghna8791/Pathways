@@ -1,0 +1,40 @@
+
+		.axis path, .axis line{
+			shape-rendering:crisp-edges;
+			fill:none;
+			stroke:black;
+		}
+
+		.axis text{
+			font-size:12px;
+			color:white;
+			font-family:sans-serif;
+		}
+		.chart{
+			margin-left: 10px;
+
+
+		}
+
+		.text{
+			font-family:"Trebuchet MS", Helvetica, sans-serif;
+			font-weight:100;
+			color:white;
+			font-size:20px;
+
+		}
+
+		.file{
+			fill:#33CCFF;
+			stroke:none;
+
+		}
+
+		.selected{
+			fill:yellow;
+			
+		}
+
+		.tick text{
+			font-size:12px;
+		}

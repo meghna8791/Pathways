@@ -1,0 +1,112 @@
+<?php
+
+	include 'query.php';
+
+?>
+<html>
+	<head> <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script></head>
+	<body> 
+		<form action="" method="POST">
+			<table>
+				
+				<tr><td><input type="text" name="usrname" id="usname">UserName</input> </td></tr>
+
+				<tr><td><input type="text" name="project" id="project"> Project </input></td></tr>
+				<tr><td><button type="submit" value="submit" id="submit">Submit </button></td></tr>
+			</table>
+		</form>
+		<svg width="700" height="500"> </svg>
+		<script>
+			var svg = d3.select("svg");
+										
+			var g = svg.append("g")
+						.attr("transform","translate(400,300)");
+
+			function getPoint(theta){
+				var path = d3.select(".path").node();
+				
+				var  point = path.getPointAtLength(theta*200);
+				
+				d3.select("g").append("circle")
+								.attr("cx",point.x)
+								.attr("cy",point.y)
+								.attr("r",10);
+				return point;
+			}
+		</script>
+		<?php
+		if($_POST){
+			$usrname= $_POST["usrname"];
+			$project = $_POST["project"];
+			
+			$query = "SELECT * FROM CSVs where usrname='$usrname' AND pathway='$project'";
+			$result = queryDB($query);
+			echo $result;
+			
+			if(!$result){
+				echo "No such project";
+			}
+				
+			else{
+				?>
+					<script>
+					var arc = d3.svg.arc()
+								.innerRadius(200)
+								.outerRadius(200)
+								.startAngle(-Math.PI/2)
+								.endAngle(Math.PI/2);
+					
+					var path = g.append("path")
+								  .attr("d", arc)
+								  .style("stroke","black")
+								  .attr("class","path");
+					var count=0;
+
+					</script>
+				<?
+				while($row=mysql_fetch_array($result)){
+					$fileName = $row["fileName"];
+					echo $fileName;
+					?> <!--<a href="?usrname=<?php echo $usrname;?>&project=<?php echo $project;?>&fileName=<?php echo $fileName;?>"><? echo $fileName; ?> </a> -->
+					<script>
+						var a = <?php echo $fileName;?> 
+						console.log(a);
+						getPoint(Math.PI/3);
+						count++;
+						console.log(count);
+					 </script>
+					<?
+				}
+			}
+			mysql_free_result($result);
+		}
+		
+
+		if(isset($_GET['usrname'])){
+			$usrname = $_GET["usrname"];
+			$project= $_GET["project"];
+			$fileName = $_GET["fileName"];
+
+			
+			$query = "SELECT * FROM CSVs where usrname='$usrname' AND pathway='$project' AND fileName='$fileName'";
+
+			$result_file = queryDB($query);
+
+			//echo "result".$result_file;
+			if(!$result_file){
+				echo "Sorry no such file";
+			}
+			else{
+				list($name, $type, $size, $content) =  mysql_fetch_array($result_file);
+
+				header("Content-length: $size");
+				header("Content-type: $type");
+				//header("Content-Disposition: attachment; filename=$name");
+				echo $content;
+			}
+
+
+		}
+	?>
+	</body>
+</html>

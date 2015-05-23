@@ -1,0 +1,28 @@
+
+.stencil{
+	stroke:white;
+}
+
+.lineAxes line{
+	shape-rendering:crisp-edges;
+	fill:none;
+	stroke:white;
+	stroke-width:1;
+}
+
+.circularTicks circle{
+			fill:none;
+			stroke:white;
+			stroke-width:1;
+}
+
+
+.rms{
+	stroke:#FF9E1F;
+	stroke-width:4;
+	fill:none;
+}
+
+.lineAxes text{
+	fill:white;
+}

@@ -1,0 +1,14 @@
+.csvText{
+	font-size:11px;
+	color:white;
+}
+
+.file{
+	fill:#33CCFF;
+	stroke:#33CCFF;
+}
+.selected .file{
+	fill:orange;
+	stroke:orange;
+}
+

@@ -1,0 +1,254 @@
+<html>
+<head>
+
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<link rel="stylesheet" href="css/importStyle.css" type="text/css" > </link>
+	<style>
+		
+		.axis{
+			shape-rendering:crisp-edges;
+			fill:none;
+			stroke:black;
+		}
+
+		.chart{
+			margin-left: 10px;
+
+		}
+
+	</style>
+</head>
+<body>
+	<header>
+		<nav>
+			<a class="left" href="http://synlab.gatech.edu/">SYNLAB</a>
+			<a class="right" href="./download.html">Download</a>
+			<a class="right" href="./import.html" class="active">Import</a>
+		</nav>
+	</header>
+
+
+	<table  cellpadding="10">
+		<tr>
+			<td>
+				<table>
+					<form id="file-form" method="POST" action="php/fileUpload.php" enctype="multipart/form-data">
+						<tr>
+							<td>Name</td>
+							<td><input type="text" name="usrname" id="usrname"></input></td>
+						</tr>
+						<tr>
+							<td>Project</td>
+							<td><input type="text" name="project" id="project"></input><br/></td>
+						</tr>
+						<tr>
+							<td></td><td style="font-size:0.5em;">
+							<input  type="file" accept="csv" id="csvs" name="csvs" multiple></input></td>
+						</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td><button type="submit" id="upload-button" >Upload</button></td>
+		</tr>
+	</form>
+	</table>
+
+	<footer>
+	</footer>
+<!--<button id="textFileUpload">Upload</button>-->
+<script src="js/csvJSON.js" ></script>
+<script>
+//new code to upload on the server
+
+var form = document.getElementById("file-form");
+var input = document.getElementById("csvs");
+var submit = document.getElementById("upload-button");
+
+/*form.onsubmit = function(event){
+	event.preventDefault();
+
+	submit.innerHTML = "Uploading...";
+
+	var files = input.files;
+	formData  = new FormData();
+	console.log(files);
+	for(var i=0;i<files.length;i++){
+		if(!files[i].type.match('csv.*')){
+			console.log("here");
+			continue;
+		}
+		console.log(files[i].name);
+		formData.append('csvs', files[i], files[i].name);
+		console.log(formData);
+	}
+
+	//communicate with the server
+	var xhr = new XMLHttpRequest();
+	xhr.open('POST','fileUpload.php',true);
+
+	xhr.onload = function(){
+		if(xhr.status==200){
+			submit.innerHTML = "Upload";
+		}else{
+			alert("Error occured");
+		}	
+
+
+	};
+	
+	xhr.send(formData);
+	//handle the file uplaod
+
+};*/
+
+/*
+//old code
+var file;
+
+var margin = {top:10 ,right:20, left:20, bottom:10},
+	width = 600 - margin.left - margin.right,
+	height = 600 - margin.top - margin.bottom
+	padding = 30;
+var h=200;
+
+$("#input-tag").change(function(){
+	var file = event.target.files[0];
+	upload(file);
+	console.log("file is "+file);
+});
+
+$("#textFileUpload").click(function(){
+
+	upload(file);
+});
+
+var json;
+
+function browserSupportFileUpload(){
+ 	var isCompatible = false;
+ 	if(window.File && window.FileReader && window.FileList && window.Blob){
+ 		isCompatible = true;
+
+ 	}
+ 	return isCompatible;
+}
+
+function upload(file){
+	if(!browserSupportFileUpload) alert("Not suppported");
+	else{
+		var data = null; 
+		var reader = new FileReader();
+		reader.readAsText(file);
+		reader.onload = function(event ){
+			json = csvJSON(event.target.result);
+			//scale the height according to number of graphs we have to make
+			h = height/json.length;
+			//console.log(h);
+			visualize(json[0],0);
+			visualizeFit();
+			visualize(json[1],1);
+			}
+		}
+}
+
+//set the x and y scales
+
+var scaleX = d3.scale.linear()
+					.domain([0,10])
+					.range([0,h]);
+				
+
+var scaleY = d3.scale.linear()
+						.domain([0,1])
+						.range([h,0]);
+
+var xAxis = d3.svg.axis()
+				.scale(scaleX);
+
+var yAxis = d3.svg.axis()
+				.scale(scaleY)
+				.orient("left");
+
+function visualize(json, offset){
+
+//group the graph elements
+var graph = d3.select(".chart")
+				.append("g")
+				.attr("class","graph")
+				.attr("id", json.Name)
+				.attr("width",h)
+				.attr("height",h)
+				.attr("transform","translate("+(padding+offset*(h+padding))+",0)");
+
+//define the axis
+graph.append("g")
+	 .attr("class","axis")
+	 .call(xAxis)
+	 .attr("transform","translate(0,"+h+")");
+
+graph.append("g")
+	 .attr("class","axis")
+	 .call(yAxis)
+	 .attr("transform","translate(0,0)");
+
+graph.selectAll(".Expdot")
+			  .data(json.values)
+			  .enter()
+			  .append("circle")
+			  .attr("cx",function(d,i){return scaleX(d.time);})
+			  .attr("cy",function(d,i){return scaleY(d.conc);})
+			  .attr("r",3.5)
+			  .style("fill","yellow")
+			  .attr("class","Expdot");
+
+	   
+
+}
+
+function visualizeFit(){
+	var graph = d3.select("#A");
+
+	var a = [{time:0, conc:0.1},{time:1, conc:0.5},{time:2, conc:0.6},{time:3, conc:0.8},{time:4, conc:0.0}];
+
+	graph.selectAll(".Fitdot")
+			  .data(a)
+			  .enter()
+			  .append("circle")
+			  .attr("cx",function(d,i){return scaleX(i);})
+			  .attr("cy",function(d,i){return scaleY(d.conc);})
+			  .attr("r",3.5)
+			  .style("fill","green")
+			  .attr("class","Fitdot");
+
+
+
+}
+
+var csvData;
+	$(function(){
+		var svg = d3.select("body").append("svg")
+									.attr("width",width)
+									.attr("height",height)
+									.attr("class","svg")
+									.style("border","solid");
+		var chart = d3.select(".svg")
+						.append("g")
+						.attr("class","chart")
+						.attr("transform","translate("+margin.left+","+margin.right+")");
+
+
+		//make the axis
+		//use the csv file
+		/*d3.csv("./exp.csv",function(data){
+			csvData = data;
+			console.log(csvData);
+		});*/
+
+
+
+	//});
+</script>
+</body>
+</html>

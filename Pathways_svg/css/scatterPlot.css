@@ -1,0 +1,29 @@
+
+		.axis path, .axis line{
+			shape-rendering:crisp-edges;
+			fill:none;
+			stroke:white;
+		}
+
+		.axis text{
+			font-size:12px;
+			color:white;
+			font-family:sans-serif;
+		}
+		.chart{
+			margin-left: 10px;
+
+
+		}
+
+		.text{
+			font-family:"Trebuchet MS", Helvetica, sans-serif;
+			font-weight:100;
+			color:white;
+			font-size:20px;
+
+		}
+		.tick text{
+			font-size:12px;
+		}
+		
